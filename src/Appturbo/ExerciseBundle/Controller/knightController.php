@@ -32,10 +32,9 @@ class knightController extends Controller implements HandlerInterface {
     }
     
     public function getKnightsAction(Request $request) {
-        
         $serializer = $this->container->get('serializer');
-        $limit=$request->attributes->get('limit')==null ? 25 : $request->attributes->get('limit');
-        $offset=$request->attributes->get('offset')==null ? 0 : $request->attributes->get('offset');
+        $limit=$request->query->get('limit')==null ? 25 : $request->query->get('limit');
+        $offset=$request->query->get('offset')==null ? 0 : $request->query->get('offset');
         $knights=$this->all($limit, $offset);
         return new Response($serializer->serialize($knights, 'json'));
     }
