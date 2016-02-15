@@ -10,21 +10,22 @@ namespace Appturbo\ExerciseBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Appturbo\ExerciseBundle\Handler\HandlerInterface ;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Appturbo\ExerciseBundle\Entity\Knight;
+use Appturbo\ExerciseBundle\Form\knightType;
 /**
  * Description of knight
  *
  * @author WADDIZ
  */
-class knightController extends Controller implements HandlerInterface {
+class knightController extends Controller{
     
     public function getKnightAction(Request $request) {
        $id=$request->attributes->get('id');
        $serializer = $this->container->get('serializer');
-       $knight=$this->get($id);
-       if(null==$this->get($id)){
+       $em = $this->getDoctrine()->getManager();
+       $knight=$em->getRepository('Appturbo\ExerciseBundle\Entity\Knight')->get($id);
+       if(null==$knight){
            throw new NotFoundHttpException("Knight #".$id." not found.");
        }
        $jsonknight = $serializer->serialize($knight, 'json');
@@ -35,45 +36,29 @@ class knightController extends Controller implements HandlerInterface {
         $serializer = $this->container->get('serializer');
         $limit=$request->query->get('limit')==null ? 25 : $request->query->get('limit');
         $offset=$request->query->get('offset')==null ? 0 : $request->query->get('offset');
-        $knights=$this->all($limit, $offset);
+        $em = $this->getDoctrine()->getManager();
+        $knights=$em->getRepository('Appturbo\ExerciseBundle\Entity\Knight')->all($limit, $offset);
         return new Response($serializer->serialize($knights, 'json'));
     }
     
     public function postKnightAction(Request $request) {
         $serializer = $this->container->get('serializer');
+        $em = $this->getDoctrine()->getManager();
+        //Form Type doesn't work arguments passed as get while post request 
+//        $knight=new Knight();
+//        $form = $this->createFormBuilder(new knightType(),$knight);
+//        $form->handleRequest($request);
         if($request->getMethod()=='POST'){
-            $name = $request->request->get('name');
-            $strength = $request->request->get('strength');
-            $weaponpower = $request->request->get('weapon_power');
+            $name = $request->get('name');
+            $strength = $request->get('strength');
+            $weaponpower = $request->get('weapon_power');
             if($name==null || $strength==null || $weaponpower==null){
-                $array=array();
-                $array['message']="Invaide arguments";
-                $array['code']=400;
-                return new Response($serializer->serialize($array, 'json'),400); 
+                return new Response($serializer->serialize(array('code'=>400,'message'=>"Invaid arguments",), 'json'),400); 
             }
             $knight=new Knight(null,$name,$strength,$weaponpower);
-            $this->post($knight);
+            $em->getRepository('Appturbo\ExerciseBundle\Entity\Knight')->post($knight);
         }
         return new Response($serializer->serialize($knight, 'json'),201);
-    }
-
-    public function all($limit, $offset) {
-        $em = $this->getDoctrine()->getManager();
-        $query=$em->createQuery("SELECT k FROM Appturbo\ExerciseBundle\Entity\Knight k")
-                  ->setMaxResults($limit)
-                  ->setFirstResult($offset);
-        return $query->getResult();
-    }
-
-    public function get($id) {
-        $em = $this->getDoctrine()->getManager();
-        return $em->getRepository('Appturbo\ExerciseBundle\Entity\Knight')->findBy(array('id' =>$id));
-    }
-
-    public function post($resource) {
-         $em = $this->getDoctrine()->getManager();
-         $em->persist($resource);
-         $em->flush();
     }
 
 }
