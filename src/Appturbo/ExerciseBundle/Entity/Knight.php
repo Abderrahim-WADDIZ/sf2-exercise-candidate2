@@ -77,9 +77,14 @@ class Knight extends Human implements FightInterface{
         $this->strength = $strength;
     }
     
+    public function getWeaponPower() {
+        return $this->weaponPower;
+    }
+
     public function setWeaponPower(Integer $weaponPower) {
         $this->weaponPower = $weaponPower;
     }
+    
 
 
     

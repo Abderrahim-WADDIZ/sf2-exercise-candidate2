@@ -126,3 +126,4 @@ composer.lock
 
 ### Customs ###
 reports/
+/nbproject/private/
